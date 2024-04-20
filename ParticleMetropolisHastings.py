@@ -33,10 +33,10 @@ for i in range(24):
     keys.append('lambda'+str(i))
 my_prior = dists.StructDist(prior_dict)
 
-ccc = np.zeros(a_matrix_shape[0])
-dd = np.eye(a_matrix_shape[0])
+#ccc = np.zeros(a_matrix_shape[0])
+#dd = np.eye(a_matrix_shape[0])
 
-aa = dists.MvNormal(loc=np.zeros(a_matrix_shape[0]), cov=np.eye(a_matrix_shape[0])).rvs(size=1)
+#aa = dists.MvNormal(loc=np.zeros(a_matrix_shape[0]), cov=np.eye(a_matrix_shape[0])).rvs(size=1)
 
 class Model(ssm.StateSpaceModel):
     def PX0(self):  # Distribution of X_0
