@@ -6,6 +6,7 @@ from particles import state_space_models as ssm
 import json
 from particles import mcmc
 from particles import datasets as dts  # real datasets available in the package
+import time
 
 f = open('A_last.json')
 A_matrix = np.array(json.load(f))
@@ -45,9 +46,10 @@ class Model(ssm.StateSpaceModel):
         u = np.zeros(paths)
         for i in range(paths):
             u[i] = np.random.poisson(getattr(self, keys[i]), 1)[0]
-        return dists.MvNormal(loc=np.matmul(A_matrix, xp) + np.matmul(B_matrix, u), cov=(0.5*np.eye(a_matrix_shape[0])))
+        
+        return dists.MvNormal(loc=xp @ A_matrix.T + np.matmul(B_matrix, u), cov=(0.5*np.eye(a_matrix_shape[0])))
     def PY(self, t, xp, x):  # Distribution of Y_t given X_t=x (and possibly X_{t-1}=xp)
-        return dists.MvNormal(loc=np.matmul(H_matrix, x), cov=(0.5*np.eye(h_matrix_shape[0])))
+        return dists.MvNormal(loc=x @ H_matrix.T, cov=(0.5*np.eye(h_matrix_shape[0])))
 
 
 # real data
@@ -57,7 +59,20 @@ data = np.array(json.load(f))
 f.close()
 
 print(data.shape)
-
-my_pmmh = mcmc.PMMH(ssm_cls=Model, prior=my_prior, data=data, Nx=456,
-                   niter=1000)
+start = time.time()
+my_pmmh = mcmc.PMMH(ssm_cls=Model, prior=my_prior, data=data, Nx=1000,
+                   niter=100000)
 my_pmmh.run(); 
+end = time.time()
+print("Time: ")
+print(end - start)
+
+for p in prior_dict.keys():  # loop over mu, theta, rho
+    with open(f'./results/{p}.json', 'w') as f:
+        json.dump(my_pmmh.chain.theta[p].tolist(), f)
+    #plt.figure()
+    #plt.plot(my_pmmh.chain.theta[p])
+    #plt.xlabel('iter')
+    #plt.ylabel(p)
+    #plt.show()
+
